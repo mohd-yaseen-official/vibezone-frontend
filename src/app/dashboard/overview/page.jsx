@@ -22,16 +22,16 @@ export default function OverviewPage() {
             try {
                 const token = localStorage.getItem("token");
                 if (!token) {
-                    // router.push("/auth");
+                    router.push("/auth");
                     return;
                 }
 
                 const [userRes, subscriptionRes] = await Promise.all([
-                    axios.get("http://127.0.0.1:8000/api/v1/user", {
+                    axios.get("http://127.0.0.1:8000/api/v1/auth/user", {
                         headers: { Authorization: `Bearer ${token}` },
                     }),
                     axios.get(
-                        "http://127.0.0.1:8000/api/v1/subscription/status",
+                        "http://127.0.0.1:8000/api/v1/subscriptions/subscription/status",
                         {
                             headers: { Authorization: `Bearer ${token}` },
                         }

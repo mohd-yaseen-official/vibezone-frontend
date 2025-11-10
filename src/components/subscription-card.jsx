@@ -4,7 +4,6 @@ import {
     CardHeader,
     CardTitle,
     CardContent,
-    CardFooter,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,6 +20,8 @@ import {
     AlertDialogTrigger,
 } from "./ui/alert-dialog";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import axios from "axios";
 
 export default function SubscriptionCard({ subscription }) {
     const router = useRouter()
@@ -35,6 +36,9 @@ export default function SubscriptionCard({ subscription }) {
         cancel_at_period_end,
         trial_end,
     } = subscription;
+
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     const statusBadge =
         status === "active"
@@ -54,7 +58,7 @@ export default function SubscriptionCard({ subscription }) {
         try {
             const token = localStorage.getItem("token");
             const response = await axios.post(
-                `http://127.0.0.1:8000/api/v1/subcription/create-checkout-session`,
+                `http://127.0.0.1:8000/api/v1/subscriptions/create-checkout-session`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -92,6 +96,7 @@ export default function SubscriptionCard({ subscription }) {
                         variant="outline"
                         size="sm"
                         className="text-chart-2 border-chart-2 hover:bg-chart-2 transition"
+                        onClick={handleSubscribe}
                     >
                         Subscribe Now
                     </Button>

@@ -16,7 +16,7 @@ export default function GoalsPage() {
 
             try {
                 var token = localStorage.getItem("token");
-                var response = await axios.get("/api/v1/goals/", {
+                var response = await axios.get("http://127.0.0.1:8000/api/v1/goals/", {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
