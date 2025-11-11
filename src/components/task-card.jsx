@@ -9,9 +9,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function TaskCard({ task }) {
-    const router = useRouter();
+    const handleDone = async () => {
+        try {
+            const response = await privateAxios.patch(`tasks/status/${task.id}`);
+            toast.success(response.data.message);
+        } catch (err) {
+            toast.error("Something went wrong while deleting");
+        }
+    };
 
     const statusColor =
         {
@@ -28,10 +36,7 @@ export default function TaskCard({ task }) {
         }[task.difficulty] || "text-gray-500";
 
     return (
-        <Card
-            onClick={() => router.push(`/tasks/${task.id}`)}
-            className="hover:shadow-md transition-all duration-200"
-        >
+        <Card className="hover:shadow-md transition-all duration-200">
             <CardHeader>
                 <CardTitle className="text-lg font-semibold">
                     {task.title}
@@ -50,9 +55,7 @@ export default function TaskCard({ task }) {
                         Assigned: {task.assigned_date}
                     </span>
 
-                    <span
-                        className={`text-sm ${difficultyColor} capitalize`}
-                    >
+                    <span className={`text-sm ${difficultyColor} capitalize`}>
                         Difficulty: {task.difficulty}
                     </span>
 
@@ -68,30 +71,14 @@ export default function TaskCard({ task }) {
                     </div>
                 </div>
                 {task.status === "assigned" && (
-                    <div className="flex flex-col gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                // API call to mark done
-                            }}
-                            className="w-full text-chart-2 border-chart-2 hover:bg-chart-2 transition"
-                        >
-                            Mark Done
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                // API call to mark missed
-                            }}
-                            className="w-full text-destructive border-destructive hover:bg-destructive transition"
-                        >
-                            Mark Missed
-                        </Button>
-                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDone}
+                        className="w-full text-chart-2 border-chart-2 hover:bg-chart-2 transition"
+                    >
+                        Mark Done
+                    </Button>
                 )}
             </CardContent>
         </Card>

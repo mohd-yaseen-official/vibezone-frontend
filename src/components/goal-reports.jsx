@@ -3,6 +3,11 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import WeeklyReportCard from "./weekly-report-card";
+import { privateAxios } from "../../axios-config";
+import MonthlyReportCard from "./monthly-report-card";
+import { Spinner } from "./ui/spinner";
+import { Alert, AlertTitle } from "./ui/alert";
+import { AlertCircleIcon } from "lucide-react";
 
 export default function GoalReports({ id, type }) {
     const [reports, setReports] = useState([]);
@@ -17,21 +22,15 @@ export default function GoalReports({ id, type }) {
             setError(null);
 
             try {
-                const token = localStorage.getItem("token");
-                const response = await axios.get(
-                    `http://127.0.0.1:8000/api/v1/goals/${id}/reports/${type}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
+                const response = await privateAxios.get(
+                    `goals/${id}/reports/${type}`
                 );
 
                 setReports(response.data);
             } catch (err) {
                 console.error(err);
                 setError(
-                    err.response?.data?.detail ||
+                    err?.response?.data?.detail ||
                         "Something went wrong while fetching reports"
                 );
             } finally {
@@ -42,21 +41,30 @@ export default function GoalReports({ id, type }) {
         fetchReports();
     }, [id]);
 
-    if (loading)
-        return <p className="text-muted-foreground">Loading reports...</p>;
-    if (error) return <p className="text-destuctive">{error}</p>;
-    if (!tasks.length)
+    if (loading) {
+        return <Spinner className="size-7" />;
+    }
+    if (error) {
         return (
-            <p className="text-muted-foreground">
-                No reports found for this goal.
-            </p>
+            <Alert variant="destructive">
+                <AlertCircleIcon />
+                <AlertTitle>{error}</AlertTitle>
+            </Alert>
+        );
+    }
+    if (!reports.length)
+        return (
+            <Alert>
+                <AlertCircleIcon />
+                <AlertTitle>No reports found.</AlertTitle>
+            </Alert>
         );
 
     const renderGoalReports = () =>
         reports.map((report) =>
             type == "weekly" ? (
-                <WeeklyReportCard key={task.id} weeklyReport={report} />
-            ) : null
+                <WeeklyReportCard key={report.id} weeklyReport={report} />
+            ) : <MonthlyReportCard key={report.id} weeklyReport={report}/>
         );
 
     return renderGoalReports();

@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import TaskCard from "./task-card";
+import { privateAxios } from "../../axios-config";
+import { Spinner } from "./ui/spinner";
+import { Alert, AlertTitle } from "./ui/alert";
+import { AlertCircleIcon } from "lucide-react";
 
 export default function GoalTasks({ id }) {
     const [tasks, setTasks] = useState([]);
@@ -17,18 +21,15 @@ export default function GoalTasks({ id }) {
             setError(null);
 
             try {
-                const token = localStorage.getItem("token");
-                const response = await axios.get(`http://127.0.0.1:8000/api/v1/goals/${id}/tasks`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
+                const response = await privateAxios.get(
+                    `goals/${id}/tasks`,
+                    {}
+                );
 
                 setTasks(response.data);
             } catch (err) {
-                console.error(err);
                 setError(
-                    err.response?.data?.detail ||
+                    err?.response?.data?.detail ||
                         "Something went wrong while fetching tasks"
                 );
             } finally {
@@ -39,9 +40,24 @@ export default function GoalTasks({ id }) {
         fetchTasks();
     }, [id]);
 
-    if (loading) return <p className="text-muted-foreground">Loading tasks...</p>;
-    if (error) return <p className="text-destuctive">{error}</p>;
-    if (!tasks.length) return <p className="text-muted-foreground">No tasks found for this goal.</p>;
+    if (loading) {
+        return <Spinner className="size-7" />;
+    }
+    if (error) {
+        return (
+            <Alert variant="destructive">
+                <AlertCircleIcon />
+                <AlertTitle>{error}</AlertTitle>
+            </Alert>
+        );
+    }
+    if (!tasks.length)
+        return (
+            <Alert>
+                <AlertCircleIcon />
+                <AlertTitle>No tasks found.</AlertTitle>
+            </Alert>
+        );
 
     const renderGoalTasks = () =>
         tasks.map((task) => <TaskCard key={task.id} task={task} />);

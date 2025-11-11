@@ -1,11 +1,13 @@
 import GoalOverview from "@/components/goal-overview";
 import GoalReports from "@/components/goal-reports";
 import GoalTasks from "@/components/goal-tasks";
+import { SiteHeader } from "@/components/site-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function GoalDetailsPage({ params }) {
     return (
         <div className="px-4 lg:px-6 flex flex-col gap-4">
+            <SiteHeader title="Goal Details" />
             <Tabs
                 defaultValue="overview"
                 className="*:data-[slot=tabs-trigger]:from-primary/5 *:data-[slot=tabs-trigger]:to-card dark:*:data-[slot=tabs-trigger]:bg-card *:data-[slot=tabs-trigger]:bg-gradient-to-t *:data-[slot=tabs-trigger]:shadow-xs gap-5"

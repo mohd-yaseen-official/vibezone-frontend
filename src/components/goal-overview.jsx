@@ -10,8 +10,12 @@ import {
     CardTitle,
 } from "./ui/card";
 import { Button } from "./ui/button";
+import { privateAxios } from "../../axios-config";
+import { Alert, AlertTitle } from "./ui/alert";
+import { AlertCircleIcon } from "lucide-react";
+import { Spinner } from "./ui/spinner";
 
-export default function GoalOverview({id}) {
+export default function GoalOverview({ id }) {
     const [goal, setGoal] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -24,21 +28,12 @@ export default function GoalOverview({id}) {
             setError(null);
 
             try {
-                const token = localStorage.getItem("token");
-                const response = await axios.get(
-                    `http://127.0.0.1:8000/api/v1/goals/${id}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
+                const response = await privateAxios.get(`goals/${id}/`);
 
                 setGoal(response.data);
             } catch (err) {
-                console.error(err);
                 setError(
-                    err.response?.data?.detail ||
+                    err?.response?.data?.detail ||
                         "Something went wrong while fetching goal"
                 );
             } finally {
@@ -49,9 +44,24 @@ export default function GoalOverview({id}) {
         fetchGoal();
     }, [id]);
 
-    if (loading) return <p className="text-muted-foreground">Loading goal...</p>;
-    if (error) return <p className="text-destructive">{error}</p>;
-    if (!goal) return <p className="text-muted-foreground">No goal found.</p>;
+    if (loading) {
+        return <Spinner className="size-7" />;
+    }
+    if (error) {
+        return (
+            <Alert variant="destructive">
+                <AlertCircleIcon />
+                <AlertTitle>{error}</AlertTitle>
+            </Alert>
+        );
+    }
+    if (!goal)
+        return (
+            <Alert>
+                <AlertCircleIcon />
+                <AlertTitle>No goal found.</AlertTitle>
+            </Alert>
+        );
 
     return (
         <Card className="shadow-sm hover:shadow-md transition-shadow duration-300">
@@ -76,7 +86,10 @@ export default function GoalOverview({id}) {
                     </CardDescription>
                 </div>
                 <CardAction>
-                    <Button variant="outline" className="border-destructive hover:bg-destructive">
+                    <Button
+                        variant="outline"
+                        className="border-destructive hover:bg-destructive"
+                    >
                         Delete
                     </Button>
                 </CardAction>

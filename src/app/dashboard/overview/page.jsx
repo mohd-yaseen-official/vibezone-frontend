@@ -2,9 +2,26 @@
 
 import SubscriptionCard from "@/components/subscription-card";
 import UserCard from "@/components/user-card";
-import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { privateAxios } from "../../../../axios-config";
+import { Spinner } from "@/components/ui/spinner";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { AlertCircleIcon } from "lucide-react";
+import { SiteHeader } from "@/components/site-header";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function OverviewPage() {
     const router = useRouter();
@@ -20,36 +37,18 @@ export default function OverviewPage() {
             setError(null);
 
             try {
-                const token = localStorage.getItem("token");
-                if (!token) {
-                    router.push("/auth");
-                    return;
-                }
-
                 const [userRes, subscriptionRes] = await Promise.all([
-                    axios.get("http://127.0.0.1:8000/api/v1/auth/user", {
-                        headers: { Authorization: `Bearer ${token}` },
-                    }),
-                    axios.get(
-                        "http://127.0.0.1:8000/api/v1/subscriptions/subscription/status",
-                        {
-                            headers: { Authorization: `Bearer ${token}` },
-                        }
-                    ),
+                    privateAxios.get("auth/user"),
+                    privateAxios.get("subscriptions/subscription/status"),
                 ]);
 
                 setUser(userRes.data);
                 setSubscription(subscriptionRes.data);
             } catch (err) {
-                if (err.response?.status === 401) {
-                    setError("Session expired. Please login again.");
-                    router.push("/auth");
-                } else {
-                    setError(
-                        err.response?.data?.detail ||
-                            "Something went wrong while fetching data"
-                    );
-                }
+                setError(
+                    err.response?.data?.detail ||
+                        "Something went wrong while fetching data"
+                );
             } finally {
                 setLoading(false);
             }
@@ -58,27 +57,88 @@ export default function OverviewPage() {
         fetchData();
     }, [router]);
 
-    if (loading)
-        return (
-            <p className="text-center text-muted-foreground mt-10">
-                Loading user and subscription...
-            </p>
-        );
+    const handleLogout = () => {
+        localStorage.removeItem("access_token");
+        toast.success("Logged out successfully");
+        router.push("/auth");
+    };
 
-    if (error)
-        return <p className="text-center mt-10 text-destructive">{error}</p>;
+    const deleteUser = async () => {
+        setLoading(true);
 
-    if (!user)
-        return (
-            <p className="text-center mt-10 text-muted-foreground">
-                No user data found.
-            </p>
-        );
+        try {
+            const response = await privateAxios.delete("auth/");
+            toast.success(response.data.message);
+            localStorage.removeItem("access_token");
+            router.push("/auth");
+        } catch (err) {
+            toast.error("Something went wrong while deleting");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const renderExceptions = () => {
+        if (loading) {
+            return <Spinner className="size-7" />;
+        }
+        if (error) {
+            return (
+                <Alert variant="destructive">
+                    <AlertCircleIcon />
+                    <AlertTitle>{error}</AlertTitle>
+                </Alert>
+            );
+        }
+        if (!user)
+            return (
+                <Alert>
+                    <AlertCircleIcon />
+                    <AlertTitle>No user data found.</AlertTitle>
+                </Alert>
+            );
+    };
 
     return (
         <div className="px-4 lg:px-6 flex flex-col gap-4 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs">
-            <UserCard user={user} />
-            <SubscriptionCard subscription={subscription} />
+            <SiteHeader
+                title="Overview"
+                button={
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-destructive border-destructive hover:bg-destructive-500 hover:text-foreground transition"
+                            >
+                                Logout
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Logout</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Are you sure you want to logout from this
+                                    account?
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={handleLogout}
+                                    className="bg-destructive/80 hover:bg-destructive focus:ring-destructive text-foreground"
+                                >
+                                    Logout
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                }
+            />
+            {renderExceptions()}
+            {user && <UserCard user={user} onDelete={deleteUser}/>}
+
+            {subscription && <SubscriptionCard subscription={subscription} />}
         </div>
     );
 }

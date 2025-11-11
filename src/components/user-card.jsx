@@ -69,7 +69,7 @@ export default function UserCard({ user, onDelete }) {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className="text-destructive border-destructive hover:bg-destructive-500 hover:text-foreground transition"
+                                    className="text-destructive border-destructive hover:bg-destructive hover:text-foreground transition"
                                 >
                                     Delete
                                 </Button>

@@ -1,7 +1,11 @@
-"use client"
+"use client";
 import { useEffect, useState } from "react";
 import WeeklyReportCard from "./weekly-report-card";
 import axios from "axios";
+import { privateAxios } from "../../axios-config";
+import { Spinner } from "./ui/spinner";
+import { Alert, AlertTitle } from "./ui/alert";
+import { AlertCircleIcon } from "lucide-react";
 
 export default function WeeklyReports() {
     const [weeklyReports, setWeeklyReports] = useState([]);
@@ -14,21 +18,12 @@ export default function WeeklyReports() {
             setError(null);
 
             try {
-                const token = localStorage.getItem("token");
-                const response = await axios.get(
-                    `http://127.0.0.1:8000/api/v1/tasks/weekly-report`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
+                const response = await privateAxios.get("tasks/weekly-report");
 
                 setWeeklyReports(response.data);
             } catch (err) {
-                console.error(err);
                 setError(
-                    err.response?.data?.detail ||
+                    err?.response?.data?.detail ||
                         "Something went wrong while fetching reports"
                 );
             } finally {
@@ -39,23 +34,39 @@ export default function WeeklyReports() {
         fetchReports();
     }, []);
 
-    if (loading)
-        return <p className="text-muted-foreground">Loading reports...</p>;
-    if (error) return <p className="text-destructive">{error}</p>;
-    if (!tasks.length)
-        return (
-            <p className="text-muted-foreground">
-                No reports found.
-            </p>
-        );
+    const renderExceptions = () => {
+        if (loading) {
+            return <Spinner className="size-7" />;
+        }
+        if (error) {
+            return (
+                <Alert variant="destructive">
+                    <AlertCircleIcon />
+                    <AlertTitle>{error}</AlertTitle>
+                </Alert>
+            );
+        }
+        if (!weeklyReports.length)
+            return (
+                <Alert>
+                    <AlertCircleIcon />
+                    <AlertTitle>No weekly reports found.</AlertTitle>
+                </Alert>
+            );
+    };
 
     const renderWeeklyReportCards = () =>
-        weeklyReports.map((weeklyReport) => (
+        weeklyReports?.map((weeklyReport) => (
             <WeeklyReportCard
                 key={weeklyReport.id}
                 weeklyReport={weeklyReport}
             />
         ));
 
-    return renderWeeklyReportCards();
+    return (
+        <>
+            {renderExceptions()}
+            {renderWeeklyReportCards()}
+        </>
+    );
 }
