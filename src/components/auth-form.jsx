@@ -478,7 +478,7 @@ export function AuthForm({ className, ...props }) {
                                 </Field>
                             )}
 
-                            {formType !== "resetPassword" && (
+                            {/* {formType !== "resetPassword" && (
                                 <>
                                     <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
                                         Or continue with
@@ -506,7 +506,7 @@ export function AuthForm({ className, ...props }) {
                                         </Button>
                                     </Field>
                                 </>
-                            )}
+                            )} */}
 
                             <FieldDescription className="text-center">
                                 {formType === "login" && (
