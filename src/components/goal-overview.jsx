@@ -14,8 +14,22 @@ import { privateAxios } from "../../axios-config";
 import { Alert, AlertTitle } from "./ui/alert";
 import { AlertCircleIcon } from "lucide-react";
 import { Spinner } from "./ui/spinner";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "./ui/alert-dialog";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function GoalOverview({ id }) {
+    const router = useRouter();
     const [goal, setGoal] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -44,9 +58,18 @@ export default function GoalOverview({ id }) {
         fetchGoal();
     }, [id]);
 
-    if (loading) {
-        return <Spinner className="size-7" />;
-    }
+    const handleDelete = async () => {
+        try {
+            const response = await privateAxios.delete(`goals/${goal.id}`);
+            toast.success(response.data || "Goal deleted successfully");
+            router.push("/dashboard/goals");
+        } catch (err) {
+            toast.error("Something went wrong while deleting");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     if (error) {
         return (
             <Alert variant="destructive">
@@ -54,6 +77,9 @@ export default function GoalOverview({ id }) {
                 <AlertTitle>{error}</AlertTitle>
             </Alert>
         );
+    }
+    if (loading) {
+        return <Spinner className="size-7" />;
     }
     if (!goal)
         return (
@@ -86,12 +112,39 @@ export default function GoalOverview({ id }) {
                     </CardDescription>
                 </div>
                 <CardAction>
-                    <Button
-                        variant="outline"
-                        className="border-destructive hover:bg-destructive"
-                    >
-                        Delete
-                    </Button>
+                    {goal.status !== "deleted" && (
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-destructive border-destructive hover:bg-destructive-500 hover:text-foreground transition"
+                                >
+                                    Delete
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Are you sure you want to delete this
+                                        goal?
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>
+                                        Cancel
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                        onClick={handleDelete}
+                                        className="bg-destructive/80 hover:bg-destructive focus:ring-destructive text-foreground"
+                                    >
+                                        Delete
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    )}
                 </CardAction>
             </CardHeader>
             <CardContent className="space-y-2 text-muted-foreground">

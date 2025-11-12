@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { GoogleLogin, useGoogleLogin } from "@react-oauth/google";
-import axios from "axios";
+import { publicAxios } from "@/lib/axios";
 
 
 export function AuthForm({ className, ...props }) {
@@ -116,7 +116,7 @@ export function AuthForm({ className, ...props }) {
 //     onSuccess: async (tokenResponse) => {
 //       try {
 //         console.log(tokenResponse);
-//         const res = await axios.post("http://127.0.0.1:8000/api/v1/auth/google-login", {
+//         const res = await publicAxios.post("auth/google-login", {
 //           token: tokenResponse.id_token,
 //         });
 
@@ -138,10 +138,7 @@ export function AuthForm({ className, ...props }) {
       const idToken = credentialResponse.credential; // ✅ This is the ID token
 
       try {
-        const res = await axios.post(
-          "http://127.0.0.1:8000/api/v1/auth/google-login",
-          { token: idToken }
-        );
+        const res = await publicAxios.post("auth/google-login", { token: idToken });
         console.log("Backend response:", res.data);
       } catch (err) {
         console.error("Login failed:", err);
@@ -196,123 +193,53 @@ export function AuthForm({ className, ...props }) {
         setSuccess(null);
 
         try {
-            let response;
-
             if (formType === "login") {
-                response = await fetch(
-                    "http://127.0.0.1:8000/api/v1/auth/login",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ email, password }),
-                    }
-                );
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setSuccess("Login successful!");
-                    localStorage.setItem("access_token", data.token);
-                    router.push("/dashboard/overview");
-                    console.log("Login successful", data);
-                } else {
-                    const errorData = await response.json();
-                    throw new Error(errorData.detail || "Login failed");
-                }
+                const { data } = await publicAxios.post("auth/login", { email, password });
+                setSuccess("Login successful!");
+                localStorage.setItem("access_token", data.token);
+                router.push("/dashboard/overview");
+                console.log("Login successful", data);
             } else if (formType === "register") {
                 if (password !== confirmPassword) {
                     throw new Error("Passwords do not match");
                 }
 
-                response = await fetch(
-                    "http://127.0.0.1:8000/api/v1/auth/register",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ email, password }),
-                    }
+                const { data } = await publicAxios.post("auth/register", { email, password });
+                setSuccess(
+                    "Account created successfully! Please login to your account."
                 );
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setSuccess(
-                        "Account created successfully! Please login to your account."
-                    );
-                    setFormType("login");
-                    setPassword("");
-                    setConfirmPassword("");
-                    console.log("Registration successful", data);
-                } else {
-                    const errorData = await response.json();
-                    throw new Error(errorData.detail || "Registration failed");
-                }
+                setFormType("login");
+                setPassword("");
+                setConfirmPassword("");
+                console.log("Registration successful", data);
             } else if (formType === "forgotPassword") {
-                response = await fetch(
-                    "http://127.0.0.1:8000/api/v1/auth/forgot-password",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ email }),
-                    }
-                );
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setSuccess("Password reset link sent to your email!");
-                    console.log("Password reset email sent", data);
-                } else {
-                    const errorData = await response.json();
-                    throw new Error(
-                        errorData.detail || "Failed to send reset link"
-                    );
-                }
+                const { data } = await publicAxios.post("auth/forgot-password", { email });
+                setSuccess("Password reset link sent to your email!");
+                console.log("Password reset email sent", data);
             } else if (formType === "resetPassword") {
                 if (password !== confirmPassword) {
                     throw new Error("Passwords do not match");
                 }
 
-                response = await fetch(
-                    "http://127.0.0.1:8000/api/v1/auth/reset-password",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                            token: token,
-                            new_password: password,
-                        }),
-                    }
+                const { data } = await publicAxios.post("auth/reset-password", {
+                    token: token,
+                    new_password: password,
+                });
+                setSuccess(
+                    "Password reset successfully! You can now login with your new password."
                 );
+                setPassword("");
+                setConfirmPassword("");
 
-                if (response.ok) {
-                    const data = await response.json();
-                    setSuccess(
-                        "Password reset successfully! You can now login with your new password."
-                    );
-                    setPassword("");
-                    setConfirmPassword("");
+                setTimeout(() => {
+                    router.push(window.location.pathname);
+                    setFormType("login");
+                }, 2000);
 
-                    setTimeout(() => {
-                        router.push(window.location.pathname);
-                        setFormType("login");
-                    }, 2000);
-
-                    console.log("Password reset successful", data);
-                } else {
-                    const errorData = await response.json();
-                    throw new Error(
-                        errorData.detail || "Failed to reset password"
-                    );
-                }
+                console.log("Password reset successful", data);
             }
         } catch (err) {
-            setError(err.message);
+            setError(err.response?.data?.detail || err.message);
             console.error("Auth error:", err);
         } finally {
             setLoading(false);

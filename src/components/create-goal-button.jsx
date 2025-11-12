@@ -14,17 +14,28 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 
 export default function CreateGoalButton({ handleSubmit }) {
+    const [formData, setFormData] = useState({
+        title: "",
+        description: "",
+        target_days: 30,
+    });
+
     const onSubmit = (e) => {
         e.preventDefault();
-        const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData.entries());
+        if (handleSubmit) handleSubmit(formData);
+    };
 
-        if (handleSubmit) handleSubmit(data);
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({
+            ...formData,
+            [name]: value,
+        });
     };
 
     return (
         <Dialog>
-            <form onSubmit={onSubmit}>
+            <form>
                 <DialogTrigger asChild>
                     <Button
                         variant="outline"
@@ -44,7 +55,8 @@ export default function CreateGoalButton({ handleSubmit }) {
                             <Input
                                 id="title"
                                 name="title"
-                                defaultValue="Learn Python in 10 days"
+                                defaultValue={formData.title}
+                                onChange={handleChange}
                             />
                         </div>
                         <div className="grid gap-3">
@@ -52,7 +64,8 @@ export default function CreateGoalButton({ handleSubmit }) {
                             <Input
                                 id="description"
                                 name="description"
-                                defaultValue="Learn Python in 10 days by using AI for Web Development"
+                                defaultValue={formData.description}
+                                onChange={handleChange}
                             />
                         </div>
                         <div className="grid gap-3">
@@ -61,7 +74,8 @@ export default function CreateGoalButton({ handleSubmit }) {
                                 type="number"
                                 id="target_days"
                                 name="target_days"
-                                defaultValue="30"
+                                defaultValue={formData.target_days}
+                                onChange={handleChange}
                             />
                         </div>
                     </div>
@@ -70,6 +84,7 @@ export default function CreateGoalButton({ handleSubmit }) {
                             <Button variant="outline">Cancel</Button>
                         </DialogClose>
                         <Button
+                            onClick={onSubmit}
                             type="submit"
                             className="bg-chart-2/80 hover:bg-chart-2 focus:ring-chart-2 text-foreground"
                         >

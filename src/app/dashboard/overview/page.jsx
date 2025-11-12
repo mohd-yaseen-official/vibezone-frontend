@@ -68,7 +68,7 @@ export default function OverviewPage() {
 
         try {
             const response = await privateAxios.delete("auth/");
-            toast.success(response.data.message);
+            toast.success(response.data || "Account deleted successfully");
             localStorage.removeItem("access_token");
             router.push("/auth");
         } catch (err) {

@@ -1,10 +1,13 @@
+"use client"
 import GoalOverview from "@/components/goal-overview";
 import GoalReports from "@/components/goal-reports";
 import GoalTasks from "@/components/goal-tasks";
 import { SiteHeader } from "@/components/site-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { use } from "react";
 
 export default function GoalDetailsPage({ params }) {
+
     return (
         <div className="px-4 lg:px-6 flex flex-col gap-4">
             <SiteHeader title="Goal Details" />
@@ -20,16 +23,16 @@ export default function GoalDetailsPage({ params }) {
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-5 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs">
-                    <GoalOverview id={params.id} />
+                    <GoalOverview id={use(params).id} />
                 </TabsContent>
                 <TabsContent value="tasks" className="space-y-5 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs">
-                    <GoalTasks id={params.id}/>
+                    <GoalTasks id={use(params).id}/>
                 </TabsContent>
                 <TabsContent value="weekly" className="space-y-5 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs">
-                    <GoalReports id={params} type="weekly"/>
+                    <GoalReports id={use(params).id} type="weekly"/>
                 </TabsContent>
                 <TabsContent value="monthly" className="space-y-5 *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs">
-                    <GoalReports id={params} type="monthly"/>
+                    <GoalReports id={use(params).id} type="monthly"/>
                 </TabsContent>
             </Tabs>
         </div>

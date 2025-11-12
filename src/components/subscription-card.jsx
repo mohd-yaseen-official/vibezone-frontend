@@ -22,6 +22,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import axios from "axios";
+import { privateAxios } from "../../axios-config";
 
 export default function SubscriptionCard({ subscription }) {
     const router = useRouter()
@@ -56,14 +57,8 @@ export default function SubscriptionCard({ subscription }) {
         setError(null);
 
         try {
-            const token = localStorage.getItem("token");
-            const response = await axios.post(
-                `http://127.0.0.1:8000/api/v1/subscriptions/create-checkout-session`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+            const response = await privateAxios.post(
+                "subscriptions/create-checkout-session"
             );
 
             const { url } = response.data;

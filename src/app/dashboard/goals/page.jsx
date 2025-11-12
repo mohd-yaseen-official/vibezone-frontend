@@ -38,12 +38,12 @@ export default function GoalsPage() {
 
     const handleSubmit = async (data) => {
         setLoading(true);
-
+        console.log(data)
         try {
             var response = await privateAxios.post("goals/create", data);
             toast.success("Goal created successfully");
         } catch (err) {
-            toast.success(
+            toast.error(
                 err?.response?.data?.detail ||
                     "Something went wrong while creating goal"
             );

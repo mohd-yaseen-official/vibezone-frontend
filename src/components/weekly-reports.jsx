@@ -18,7 +18,7 @@ export default function WeeklyReports() {
             setError(null);
 
             try {
-                const response = await privateAxios.get("tasks/weekly-report");
+                const response = await privateAxios.get("reports/weekly-report");
 
                 setWeeklyReports(response.data);
             } catch (err) {

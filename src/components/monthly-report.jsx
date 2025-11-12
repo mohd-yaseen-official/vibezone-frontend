@@ -17,7 +17,7 @@ export default function MonthlyReports() {
             setError(null);
 
             try {
-                const response = await privateAxios.get("tasks/monthly-report");
+                const response = await privateAxios.get("reports/monthly-report");
 
                 setMonthlyReports(response.data);
             } catch (err) {
