@@ -14,8 +14,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { GoogleLogin, useGoogleLogin } from "@react-oauth/google";
-import { publicAxios } from "@/lib/axios";
-
+import { publicAxios } from "../../axios-config";
 
 export function AuthForm({ className, ...props }) {
     const router = useRouter();
@@ -112,54 +111,56 @@ export function AuthForm({ className, ...props }) {
     //     }
     // };
 
-//     const handleGoogleSignIn = useGoogleLogin({
-//     onSuccess: async (tokenResponse) => {
-//       try {
-//         console.log(tokenResponse);
-//         const res = await publicAxios.post("auth/google-login", {
-//           token: tokenResponse.id_token,
-//         });
+    //     const handleGoogleSignIn = useGoogleLogin({
+    //     onSuccess: async (tokenResponse) => {
+    //       try {
+    //         console.log(tokenResponse);
+    //         const res = await publicAxios.post("auth/google-login", {
+    //           token: tokenResponse.id_token,
+    //         });
 
-//         console.log("Backend response:", res.data);
-//       } catch (error) {
-//         console.error("Google login failed:", error);
-//       }
-//     },
-//     onError: (err) => {
-//       console.error("Google login error", err);
-//     },
-//     flow: "implicit"
-//   });
-        
+    //         console.log("Backend response:", res.data);
+    //       } catch (error) {
+    //         console.error("Google login failed:", error);
+    //       }
+    //     },
+    //     onError: (err) => {
+    //       console.error("Google login error", err);
+    //     },
+    //     flow: "implicit"
+    //   });
+
     const handleGoogleSignIn = async () => {
-    setLoading(true);
+        setLoading(true);
 
-    const onSuccess = async (credentialResponse) => {
-      const idToken = credentialResponse.credential; // ✅ This is the ID token
+        const onSuccess = async (credentialResponse) => {
+            const idToken = credentialResponse.credential; // ✅ This is the ID token
 
-      try {
-        const res = await publicAxios.post("auth/google-login", { token: idToken });
-        console.log("Backend response:", res.data);
-      } catch (err) {
-        console.error("Login failed:", err);
-      } finally {
-        setLoading(false);
-      }
+            try {
+                const res = await publicAxios.post("auth/google-login", {
+                    token: idToken,
+                });
+                console.log("Backend response:", res.data);
+            } catch (err) {
+                console.error("Login failed:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const onError = () => {
+            console.error("Google login failed");
+            setLoading(false);
+        };
+
+        return (
+            <GoogleLogin
+                onSuccess={onSuccess}
+                onError={onError}
+                useOneTap={true}
+            />
+        );
     };
-
-    const onError = () => {
-      console.error("Google login failed");
-      setLoading(false);
-    };
-
-    return (
-      <GoogleLogin
-        onSuccess={onSuccess}
-        onError={onError}
-        useOneTap={true}
-      />
-    );
-  };
 
     const getTitle = () => {
         switch (formType) {
@@ -194,7 +195,10 @@ export function AuthForm({ className, ...props }) {
 
         try {
             if (formType === "login") {
-                const { data } = await publicAxios.post("auth/login", { email, password });
+                const { data } = await publicAxios.post("auth/login", {
+                    email,
+                    password,
+                });
                 setSuccess("Login successful!");
                 localStorage.setItem("access_token", data.token);
                 router.push("/dashboard/overview");
@@ -204,7 +208,10 @@ export function AuthForm({ className, ...props }) {
                     throw new Error("Passwords do not match");
                 }
 
-                const { data } = await publicAxios.post("auth/register", { email, password });
+                const { data } = await publicAxios.post("auth/register", {
+                    email,
+                    password,
+                });
                 setSuccess(
                     "Account created successfully! Please login to your account."
                 );
@@ -213,7 +220,10 @@ export function AuthForm({ className, ...props }) {
                 setConfirmPassword("");
                 console.log("Registration successful", data);
             } else if (formType === "forgotPassword") {
-                const { data } = await publicAxios.post("auth/forgot-password", { email });
+                const { data } = await publicAxios.post(
+                    "auth/forgot-password",
+                    { email }
+                );
                 setSuccess("Password reset link sent to your email!");
                 console.log("Password reset email sent", data);
             } else if (formType === "resetPassword") {
